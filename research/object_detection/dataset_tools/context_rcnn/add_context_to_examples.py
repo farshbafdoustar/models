@@ -893,6 +893,7 @@ def parse_args(argv):
       help='Whether or not to keep only positive boxes based on gt class.')
   parser.add_argument(
       '--max_num_elements_in_context_features',
+      type=int,
       dest='max_num_elements_in_context_features',
       default=2000,
       help='Sets max number of context feature elements per memory bank. '
