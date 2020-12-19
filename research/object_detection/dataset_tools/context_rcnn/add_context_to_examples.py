@@ -756,19 +756,25 @@ def construct_pipeline(pipeline,
       pipeline | 'ReadInputTFRecord' >> beam.io.tfrecordio.ReadFromTFRecord(
           input_tfrecord,
           coder=beam.coders.BytesCoder()))
+  print("input_collection done")
   rekey_collection = input_collection | 'RekeyExamples' >> beam.ParDo(
       ReKeyDataFn(sequence_key, time_horizon,
                   reduce_image_size, max_image_dimension))
+  print("rekey_collection done")
   grouped_collection = (
       rekey_collection | 'GroupBySequenceKey' >> beam.GroupByKey())
+  print("GroupBySequenceKey done")
   grouped_collection = (
       grouped_collection | 'ReshuffleGroups' >> beam.Reshuffle())
+  print("ReshuffleGroups done")
   ordered_collection = (
       grouped_collection | 'OrderByFrameNumber' >> beam.ParDo(
           SortGroupedDataFn(sequence_key, sorted_image_ids,
                             max_num_elements_in_context_features)))
+  print("OrderByFrameNumber done")
   ordered_collection = (
       ordered_collection | 'ReshuffleSortedGroups' >> beam.Reshuffle())
+  print("ReshuffleSortedGroups done")
   output_collection = (
       ordered_collection | 'AddContextToExamples' >> beam.ParDo(
           GenerateContextFn(
@@ -785,13 +791,15 @@ def construct_pipeline(pipeline,
               output_type=output_type,
               max_clip_length=max_clip_length,
               context_feature_length=context_feature_length)))
-
+  print("AddContextToExamples done")
   output_collection = (
       output_collection | 'ReshuffleExamples' >> beam.Reshuffle())
+  print("ReshuffleExamples done")
   _ = output_collection | 'WritetoDisk' >> beam.io.tfrecordio.WriteToTFRecord(
       output_tfrecord,
       num_shards=num_shards,
       coder=coder)
+  print("WritetoDisk done")
 
 
 def parse_args(argv):
